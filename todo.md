@@ -1,0 +1,3 @@
+- [ ] Create user class
+  - [ ] Initilize user
+  - [ ] user class methods?

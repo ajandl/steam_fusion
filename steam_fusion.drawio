@@ -1,0 +1,113 @@
+<mxfile host="65bd71144e">
+    <diagram id="R2lEEEUBdFMjLlhIrx00" name="Page-1">
+        <mxGraphModel dx="508" dy="950" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0" extFonts="Permanent Marker^https://fonts.googleapis.com/css?family=Permanent+Marker">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-1" value="Display common items between 2 lists" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="330" y="30" width="165" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-4" value="GET: list to be displayed" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;size=17.5;" parent="1" vertex="1">
+                    <mxGeometry x="352.5" y="110" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-5" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="OAqiOE6Jfy4MYUeo2c9U-4" target="OAqiOE6Jfy4MYUeo2c9U-1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="400" y="330" as="sourcePoint"/>
+                        <mxPoint x="450" y="280" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-6" value="Create new list with common elements of 2 input lists" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
+                    <mxGeometry x="352.5" y="230" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-7" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="OAqiOE6Jfy4MYUeo2c9U-6" target="OAqiOE6Jfy4MYUeo2c9U-4" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="400" y="310" as="sourcePoint"/>
+                        <mxPoint x="450" y="260" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="OAqiOE6Jfy4MYUeo2c9U-8" target="OAqiOE6Jfy4MYUeo2c9U-6" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-8" value="Get list of owned and wishlisted games from user1 from local DB" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="340" width="130" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="OAqiOE6Jfy4MYUeo2c9U-9" target="OAqiOE6Jfy4MYUeo2c9U-6" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-9" value="Get list of owned and wishlisted games from user2 from local DB" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="340" width="130" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="OAqiOE6Jfy4MYUeo2c9U-13" target="OAqiOE6Jfy4MYUeo2c9U-9" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" style="edgeStyle=none;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="OAqiOE6Jfy4MYUeo2c9U-13" target="OAqiOE6Jfy4MYUeo2c9U-33">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="OAqiOE6Jfy4MYUeo2c9U-13" target="OAqiOE6Jfy4MYUeo2c9U-34">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" style="edgeStyle=none;html=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="OAqiOE6Jfy4MYUeo2c9U-13" target="OAqiOE6Jfy4MYUeo2c9U-35">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-13" value="User Class" style="swimlane;" parent="1" vertex="1">
+                    <mxGeometry x="305" y="530" width="215" height="460" as="geometry">
+                        <mxRectangle x="325" y="510" width="140" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-19" value="Data" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" parent="OAqiOE6Jfy4MYUeo2c9U-13" vertex="1">
+                    <mxGeometry x="17.5" y="40" width="140" height="120" as="geometry">
+                        <mxRectangle x="17.5" y="40" width="70" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-20" value="UserID   " style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;" parent="OAqiOE6Jfy4MYUeo2c9U-19" vertex="1">
+                    <mxGeometry y="30" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-21" value="Username" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;" parent="OAqiOE6Jfy4MYUeo2c9U-19" vertex="1">
+                    <mxGeometry y="60" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-22" value="SteamID" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;" parent="OAqiOE6Jfy4MYUeo2c9U-19" vertex="1">
+                    <mxGeometry y="90" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-23" value="Methods" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" parent="OAqiOE6Jfy4MYUeo2c9U-13" vertex="1">
+                    <mxGeometry x="17.5" y="180" width="180" height="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-24" value="Get owned games from Steam" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;" parent="OAqiOE6Jfy4MYUeo2c9U-23" vertex="1">
+                    <mxGeometry y="30" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-25" value="Get wishlist games from Steam" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;" parent="OAqiOE6Jfy4MYUeo2c9U-23" vertex="1">
+                    <mxGeometry y="60" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-26" value="Save Steam game lists to DB" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;" parent="OAqiOE6Jfy4MYUeo2c9U-23" vertex="1">
+                    <mxGeometry y="90" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-27" value="Get game lists from DB" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;" parent="OAqiOE6Jfy4MYUeo2c9U-23" vertex="1">
+                    <mxGeometry y="120" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-28" value="Create new user" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;" parent="OAqiOE6Jfy4MYUeo2c9U-23" vertex="1">
+                    <mxGeometry y="150" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-29" value="Change password" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;" parent="OAqiOE6Jfy4MYUeo2c9U-23" vertex="1">
+                    <mxGeometry y="180" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-30" value="User login" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;" parent="OAqiOE6Jfy4MYUeo2c9U-23" vertex="1">
+                    <mxGeometry y="210" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-31" value="Save user info to DB" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;" parent="OAqiOE6Jfy4MYUeo2c9U-23" vertex="1">
+                    <mxGeometry y="240" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="OAqiOE6Jfy4MYUeo2c9U-13" target="OAqiOE6Jfy4MYUeo2c9U-8" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-33" value="POST: User creation" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;" parent="1" vertex="1">
+                    <mxGeometry x="610" y="530" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-34" value="POST: User login" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;" parent="1" vertex="1">
+                    <mxGeometry x="610" y="630" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="OAqiOE6Jfy4MYUeo2c9U-35" value="POST: Link SteamID" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;" parent="1" vertex="1">
+                    <mxGeometry x="610" y="730" width="120" height="80" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
