@@ -26,11 +26,11 @@
 
 ## Create User
 - POST
-- Recieve username, email address, hashed password
+- Recieve username, email address, password
   
 ## User login
 - POST
-- Recieve username, hashed password
+- Recieve username, password
 
 ## Update user info
 - POST
@@ -38,7 +38,7 @@
 
 ## Link SteamID
 - POST
-- userID, steamID
+- Recieve userID, steam_handle
 
 ## Return list to display
 - GET with query params: listID_1, listID_2
