@@ -26,3 +26,15 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.pw_hash, password)
+
+    def set_steam(self, steam_id='', steam_name=''):
+        self.steam_id = steam_id
+        self.steam_name = steam_name
+
+# TODO Add UserMixin, and login tracking
+# TODO Create login endpoint
+#   TODO Document endpoint
+# TODO Create logout endpoint
+#   TODO Document endpoint
+# TODO Create user creation endpoint
+#   TODO Document endpoint
