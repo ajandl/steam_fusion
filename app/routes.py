@@ -9,7 +9,10 @@ from flask_jwt_extended import get_jwt
 from datetime import datetime, timedelta, timezone
 from app import db
 import json
-import requests
+from app.steam_requests import get_player_summary
+from app.steam_requests import get_owned
+from app.steam_requests import get_app_name
+from app.steam_requests import get_wishlist
 
 
 @app.route('/')
@@ -95,13 +98,8 @@ def set_steam():
     steamid = request.args.get('steamid')
 
     # Use /GetPlayerSummaries/ to check steamid and get steam persona
-    r = requests.get(
-        r'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/',
-        params={'key': app.config['STEAM_API'], 'steamids': steamid}
-    ).json()
-
     try:
-        steam_name = r['response']['players'][0]['personaname']
+        steam_name = get_player_summary(steamid)['personaname']
     except IndexError:
         return jsonify(msg="IndexError: Steam ID invalid"), 403
     except KeyError:

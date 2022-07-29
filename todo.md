@@ -1,3 +1,11 @@
-- [ ] Create user class
-  - [ ] Initilize user
-  - [ ] user class methods?
+- [ ] Create models for:
+  - [ ] list_entries
+  - [ ] steam_games
+  - [ ] list_roles
+  - [ ] lists
+- [ ] Create import_steam endpoint:
+  - [ ] Get owned and wishlist
+  - [ ] Load into steam_games if not present
+  - [ ] If no lists exists, create it.
+    - [ ] Set role
+  - [ ] Add games to lists (under list_entries)
