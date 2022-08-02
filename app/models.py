@@ -18,7 +18,7 @@ class User(db.Model):
         nullable=False,
         )
 
-    entries = db.relationship('List_entry', backref='user')
+    entries = db.relationship('List_entry', back_populates='user')
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -37,7 +37,7 @@ class User(db.Model):
 class Steam_game(db.Model):
     __tablename__ = 'steam_games'
 
-    app_id = db.Column(db.Integer, primary_key=True, unique=True)
+    steam_app_id = db.Column(db.Integer, primary_key=True, unique=True)
     title = db.Column(db.Text, nullable=False)
     time_added = db.Column(
         db.DateTime,
@@ -45,7 +45,7 @@ class Steam_game(db.Model):
         nullable=False,
     )
 
-    entries = db.relationship('List_entry', backref='app')
+    entries = db.relationship('List_entry', back_populates='app')
 
 
 class List(db.Model):
@@ -59,16 +59,31 @@ class List(db.Model):
         nullable=False,
     )
 
-    entries = db.relationship('List_entry', backref='list')
+    entries = db.relationship('List_entry', back_populates='list')
 
 
 class List_entry(db.Model):
     __tablename__ = 'list_entries'
 
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    app_id = db.Column(db.Integer, db.ForeignKey('app.id'), primary_key=True)
-    list_id = db.Column(db.Integer, db.ForeignKey('list.id'), primary_key=True)
+    # ForeignKey() takes an argument in the format table_name.column_name.
+    # table_name and column_name come from the sql table, not the models.
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.user_id'),
+        primary_key=True,
+    )
+    app_id = db.Column(
+        db.Integer,
+        db.ForeignKey('steam_games.steam_app_id'),
+        primary_key=True
+    )
+    list_id = db.Column(
+        db.Integer,
+        db.ForeignKey('lists.list_id'),
+        primary_key=True
+    )
 
-    user = db.relationship('User', backref='entries')
-    app = db.relationship('Steam_games', backref='entries')
-    list = db.relationship('Lists', backref='entries')
+    # relationship takes the first positional argument of Model_name,
+    user = db.relationship('User', back_populates='entries')
+    app = db.relationship('Steam_game', back_populates='entries')
+    list = db.relationship('List', back_populates='entries')
