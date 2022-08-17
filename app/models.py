@@ -3,6 +3,22 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
+"""
+Using this structure for the database is inherently not efficient when trying
+to get all the games that a user has on a list (such as their "owned" games).
+
+To do something like this requires a query linking the users to list_roles and
+then determining the list_id where they are an owner or have some other sort of
+permission level set.  For other custom lists, another join to the lists table
+is required to determine the list names and then the list_id.
+
+Once the list_id is known, then the list_entries table can be queried.
+
+This could result in many queries for a user who wants to see all of their
+lists, but given the number of users we expect to have, this is acceptable.
+"""
+
+
 class User(db.Model):
     __tablename__ = 'users'
 
@@ -18,7 +34,8 @@ class User(db.Model):
         nullable=False,
         )
 
-    entries = db.relationship('List_entry', back_populates='user')
+    entries = db.relationship('ListEntry', back_populates='user')
+    roles = db.relationship('ListRoles', back_populates='user')
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -34,35 +51,36 @@ class User(db.Model):
         self.steam_name = steam_name
 
 
-class Steam_game(db.Model):
+class SteamGame(db.Model):
     __tablename__ = 'steam_games'
 
     steam_app_id = db.Column(db.Integer, primary_key=True, unique=True)
-    title = db.Column(db.Text, nullable=False)
+    game_title = db.Column(db.Text, nullable=False)
     time_added = db.Column(
         db.DateTime,
         default=datetime.utcnow,
         nullable=False,
     )
 
-    entries = db.relationship('List_entry', back_populates='app')
+    entries = db.relationship('ListEntry', back_populates='app')
 
 
-class List(db.Model):
+class ListsModel(db.Model):
     __tablename__ = 'lists'
 
     list_id = db.Column(db.Integer, primary_key=True, unique=True)
     list_name = db.Column(db.Text, nullable=False)
-    creation_time = db.Column(
+    list_creation_time = db.Column(
         db.DateTime,
         default=datetime.utcnow,
         nullable=False,
     )
 
-    entries = db.relationship('List_entry', back_populates='list')
+    entries = db.relationship('ListEntry', back_populates='list_relationship')
+    roles = db.relationship('ListRoles', back_populates='list_relationship')
 
 
-class List_entry(db.Model):
+class ListEntry(db.Model):
     __tablename__ = 'list_entries'
 
     # ForeignKey() takes an argument in the format table_name.column_name.
@@ -72,7 +90,7 @@ class List_entry(db.Model):
         db.ForeignKey('users.user_id'),
         primary_key=True,
     )
-    app_id = db.Column(
+    steam_app_id = db.Column(
         db.Integer,
         db.ForeignKey('steam_games.steam_app_id'),
         primary_key=True
@@ -82,8 +100,30 @@ class List_entry(db.Model):
         db.ForeignKey('lists.list_id'),
         primary_key=True
     )
+    time_entered = db.Column(
+        db.DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+    )
 
     # relationship takes the first positional argument of Model_name,
     user = db.relationship('User', back_populates='entries')
-    app = db.relationship('Steam_game', back_populates='entries')
-    list = db.relationship('List', back_populates='entries')
+    app = db.relationship('SteamGame', back_populates='entries')
+    list_relationship = db.relationship('ListModel', back_populates='entries')
+
+
+class ListRoles(db.Model):
+    __tablename__ = 'list_roles'
+
+    role_id = db.Column(db.Integer, primary_key=True, unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
+    permission_lvl = db.Column(db.Text, nullable=False)
+    list_id = db.Column(db.Integer, db.ForeignKey('lists.list_id'))
+    role_set_time = db.Column(
+        db.DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+    )
+
+    user = db.relationship('User', back_populates='roles')
+    list_relationship = db.relationship('ListsModel', back_populates='roles')

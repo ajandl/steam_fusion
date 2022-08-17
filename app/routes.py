@@ -9,10 +9,12 @@ from flask_jwt_extended import get_jwt
 from datetime import datetime, timedelta, timezone
 from app import db
 import json
-from app.steam_requests import get_player_summary
-from app.steam_requests import get_owned
-from app.steam_requests import get_app_name
-from app.steam_requests import get_wishlist
+from app.steam_requests import (
+    get_player_summary,
+    get_owned,
+    get_app_name,
+    get_wishlist,
+)
 
 
 @app.route('/')
