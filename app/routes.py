@@ -121,17 +121,17 @@ def update_owned_list():
     current_user = User.query.filter_by(user_id=current_user_id).first()
 
     owned_list = get_owned(current_user.steamid)
-    app_id_list = []
+    app_dict = {}
+    steam_game_dict = {}
+    for steam_game in SteamGame.query.all():
+        steam_game_dict[steam_game.steam_app_id] = steam_game.game_title
+
     for game in owned_list:
         app_id = game['appid']
 
-        # Is app_id in steam_fusion db?
-        steam_game = (
-            SteamGame.query
-            .filter_by(steam_app_id=str(app_id))
-            .first()
-        )
-        if steam_game is None:
+        if app_id in steam_game_dict.keys():
+            app_dict[app_id] = steam_game_dict[app_id]
+        else:
             app_data = get_app_name(str(app_id))
             if app_data is not None:
                 app_name = app_data['name']
@@ -139,15 +139,30 @@ def update_owned_list():
                     steam_app_id=app_id,
                     game_title=app_name,
                 )
-                db.session.add(new_steam_app)
-        else:
-            app_name = steam_game.game_title
+            db.session.add(new_steam_app)
+            app_dict[app_id] = app_name
 
-        db.session.commit()
+        # # Is app_id in steam_fusion db?
+        # steam_game = (
+        #     SteamGame.query
+        #     .filter_by(steam_app_id=str(app_id))
+        #     .first()
+        # )
+        # if steam_game is None:
+        #     app_data = get_app_name(str(app_id))
+        #     if app_data is not None:
+        #         app_name = app_data['name']
+        #         new_steam_app = SteamGame(
+        #             steam_app_id=app_id,
+        #             game_title=app_name,
+        #         )
+        #         db.session.add(new_steam_app)
+        # else:
+        #     app_name = steam_game.game_title
 
-        app_id_list.append(app_name)
+    db.session.commit()
 
-    return jsonify(app_id_list)
+    return jsonify(app_dict)
 
 
 @app.after_request
