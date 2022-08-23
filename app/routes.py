@@ -124,14 +124,16 @@ def update_owned_list():
     app_dict = {}
     steam_game_dict = {}
     for steam_game in SteamGame.query.all():
-        steam_game_dict[steam_game.steam_app_id] = steam_game.game_title
+        steam_game_dict[str(steam_game.steam_app_id)] = steam_game.game_title
 
     for game in owned_list:
-        app_id = game['appid']
+        app_id = str(game['appid'])
 
         if app_id in steam_game_dict.keys():
             app_dict[app_id] = steam_game_dict[app_id]
+            print(f"found app id {app_id}: {app_dict[app_id]}")
         else:
+            print(f"getting data for app id: {app_id}")
             app_data = get_app_name(str(app_id))
             if app_data is not None:
                 app_name = app_data['name']
@@ -139,26 +141,9 @@ def update_owned_list():
                     steam_app_id=app_id,
                     game_title=app_name,
                 )
-            db.session.add(new_steam_app)
-            app_dict[app_id] = app_name
-
-        # # Is app_id in steam_fusion db?
-        # steam_game = (
-        #     SteamGame.query
-        #     .filter_by(steam_app_id=str(app_id))
-        #     .first()
-        # )
-        # if steam_game is None:
-        #     app_data = get_app_name(str(app_id))
-        #     if app_data is not None:
-        #         app_name = app_data['name']
-        #         new_steam_app = SteamGame(
-        #             steam_app_id=app_id,
-        #             game_title=app_name,
-        #         )
-        #         db.session.add(new_steam_app)
-        # else:
-        #     app_name = steam_game.game_title
+                db.session.add(new_steam_app)
+                app_dict[app_id] = app_name
+    # app_dict now has all of the apps owned by current_user
 
     db.session.commit()
 
