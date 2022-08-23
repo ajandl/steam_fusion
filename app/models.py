@@ -109,7 +109,7 @@ class ListEntry(db.Model):
     # relationship takes the first positional argument of Model_name,
     user = db.relationship('User', back_populates='entries')
     app = db.relationship('SteamGame', back_populates='entries')
-    list_relationship = db.relationship('ListModel', back_populates='entries')
+    list_relationship = db.relationship('ListsModel', back_populates='entries')
 
 
 class ListRoles(db.Model):

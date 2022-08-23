@@ -1,11 +1,13 @@
 from app import app
 from flask import jsonify, request
-from app.models import User
-from flask_jwt_extended import create_access_token
-from flask_jwt_extended import get_jwt_identity
-from flask_jwt_extended import jwt_required
-from flask_jwt_extended import unset_jwt_cookies
-from flask_jwt_extended import get_jwt
+from app.models import User, SteamGame
+from flask_jwt_extended import (
+    create_access_token,
+    get_jwt_identity,
+    jwt_required,
+    unset_jwt_cookies,
+    get_jwt,
+)
 from datetime import datetime, timedelta, timezone
 from app import db
 import json
@@ -109,11 +111,47 @@ def set_steam():
 
     current_user.set_steam(steamid=steamid, steam_name=steam_name)
     db.session.commit()
-    return jsonify(msg="Steam identity succesfully updated"), 200
+    return jsonify(msg="Steam identity successfully updated"), 200
+
+
+@app.route("/update_owned_list", methods=["GET"])
+@jwt_required()
+def update_owned_list():
+    current_user_id = get_jwt_identity()
+    current_user = User.query.filter_by(user_id=current_user_id).first()
+
+    owned_list = get_owned(current_user.steamid)
+    app_id_list = []
+    for game in owned_list:
+        app_id = game['appid']
+
+        # Is app_id in steam_fusion db?
+        steam_game = (
+            SteamGame.query
+            .filter_by(steam_app_id=str(app_id))
+            .first()
+        )
+        if steam_game is None:
+            app_data = get_app_name(str(app_id))
+            if app_data is not None:
+                app_name = app_data['name']
+                new_steam_app = SteamGame(
+                    steam_app_id=app_id,
+                    game_title=app_name,
+                )
+                db.session.add(new_steam_app)
+        else:
+            app_name = steam_game.game_title
+
+        db.session.commit()
+
+        app_id_list.append(app_name)
+
+    return jsonify(app_id_list)
 
 
 @app.after_request
-def refersh_token(response):
+def refresh_token(response):
     try:
         exp_timestamp = get_jwt()['exp']
         now = datetime.now(timezone.utc)
