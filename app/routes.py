@@ -1,6 +1,12 @@
 from app import app
 from flask import jsonify, request
-from app.models import User, SteamGame
+from app.models import (
+    User,
+    SteamGame,
+    ListEntry,
+    ListRoles,
+    ListsModel,
+)
 from flask_jwt_extended import (
     create_access_token,
     get_jwt_identity,
@@ -29,7 +35,6 @@ def homepage():
 def login():
     current_username = request.json.get('username')
     current_password = request.json.get('password')
-    # TODO Allow logging in with email or username
 
     user = User.query.filter_by(username=current_username).first()
 
@@ -120,18 +125,69 @@ def update_owned_list():
     current_user_id = get_jwt_identity()
     current_user = User.query.filter_by(user_id=current_user_id).first()
 
-    owned_list = get_owned(current_user.steamid)
-    app_dict = {}
-    steam_game_dict = {}
-    for steam_game in SteamGame.query.all():
-        steam_game_dict[str(steam_game.steam_app_id)] = steam_game.game_title
+    user_role_owned = (
+        ListRoles.query
+        .join(ListsModel)
+        .filter(ListRoles.user_id == current_user_id)
+        .filter(ListsModel.list_name == 'owned')
+        .first()
+    )
 
-    for game in owned_list:
+    if user_role_owned is None:
+        new_list = ListsModel(list_name='owned')
+        new_role = ListRoles(
+            user_id=current_user_id,
+            permission_lvl='owner',
+        )
+        new_role.list_relationship = new_list
+        db.session.add(new_list)
+        db.session.add(new_role)
+        user_role_owned = new_role
+        list_owned = new_list
+    else:
+        list_owned = (
+            ListsModel.query
+            .filter_by(list_id=user_role_owned.list_id)
+            .first()
+        )
+
+    steam_owned_list = get_owned(current_user.steamid)
+    app_dict = {}
+
+    steam_game_dict = {}
+    steam_game_query = SteamGame.query.all()
+    for steam_game in steam_game_query:
+        steam_game_dict[str(steam_game.steam_app_id)] = steam_game
+
+    owned_entries = (
+        ListEntry.query
+        .join(ListsModel)
+        .filter(ListEntry.list_id == list_owned.list_id)
+        .filter(ListEntry.user_id == current_user_id)
+        .all()
+    )
+    owned_entries_dict = {}
+    for entry in owned_entries:
+        owned_entries_dict[str(entry.steam_app_id)] = entry
+
+    for game in steam_owned_list:
         app_id = str(game['appid'])
 
-        if app_id in steam_game_dict.keys():
-            app_dict[app_id] = steam_game_dict[app_id]
-            print(f"found app id {app_id}: {app_dict[app_id]}")
+        if app_id in owned_entries_dict.keys():
+            print(f"{app_id} already in {owned_entries_dict[app_id]}")
+        elif app_id in steam_game_dict.keys():
+            app_dict[app_id] = steam_game_dict[app_id].game_title
+            new_entry = ListEntry(
+                user_id=current_user_id,
+                steam_app_id=app_id,
+                list_id=list_owned.list_id,
+            )
+            new_entry.user = current_user
+            new_entry.app = steam_game_dict[app_id]
+            new_entry.list_relationship = list_owned
+            db.session.add(new_entry)
+            print(f"Added {app_id}: {app_dict[app_id]} to\
+                 {list_owned} as {new_entry}")
         else:
             print(f"getting data for app id: {app_id}")
             app_data = get_app_name(str(app_id))
@@ -143,9 +199,10 @@ def update_owned_list():
                 )
                 db.session.add(new_steam_app)
                 app_dict[app_id] = app_name
-    # app_dict now has all of the apps owned by current_user
+    # app_dict now has all of the apps owned by current_user.  Need to compare
+    # to what we have stored in the db.
 
-    db.session.commit()
+        db.session.commit()
 
     return jsonify(app_dict)
 
