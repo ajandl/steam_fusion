@@ -25,6 +25,48 @@ from app.steam_requests import (
 )
 
 
+def get_list_entries(user: User, list_model: ListsModel) -> dict:
+    owned_entries = (
+        ListEntry.query
+        .join(ListsModel)
+        .filter(ListEntry.list_id == list_model.list_id)
+        .filter(ListEntry.user_id == user.user_id)
+        .all()
+    )
+    owned_entries_dict = {}
+    for entry in owned_entries:
+        owned_entries_dict[str(entry.steam_app_id)] = entry
+
+    return owned_entries_dict
+
+
+def get_steam_games() -> dict:
+    steam_game_dict = {}
+    steam_game_query = SteamGame.query.all()
+    for steam_game in steam_game_query:
+        steam_game_dict[str(steam_game.steam_app_id)] = steam_game
+
+    return steam_game_dict
+
+
+def create_entry(
+    user: User,
+    app: SteamGame,
+    list_model: ListsModel
+) -> ListEntry:
+
+    new_entry = ListEntry(
+        user_id=user.user_id,
+        steam_app_id=app.steam_app_id,
+        list_id=list_model.list_id,
+    )
+    new_entry.user = user
+    new_entry.app = app
+    new_entry.list_relationship = list_model
+
+    return new_entry
+
+
 @app.route('/')
 def homepage():
     # return render_template('main.html')
@@ -152,23 +194,9 @@ def update_owned_list():
         )
 
     steam_owned_list = get_owned(current_user.steamid)
-    app_dict = {}
 
-    steam_game_dict = {}
-    steam_game_query = SteamGame.query.all()
-    for steam_game in steam_game_query:
-        steam_game_dict[str(steam_game.steam_app_id)] = steam_game
-
-    owned_entries = (
-        ListEntry.query
-        .join(ListsModel)
-        .filter(ListEntry.list_id == list_owned.list_id)
-        .filter(ListEntry.user_id == current_user_id)
-        .all()
-    )
-    owned_entries_dict = {}
-    for entry in owned_entries:
-        owned_entries_dict[str(entry.steam_app_id)] = entry
+    steam_game_dict = get_steam_games()
+    owned_entries_dict = get_list_entries(current_user, list_owned)
 
     for game in steam_owned_list:
         app_id = str(game['appid'])
@@ -176,18 +204,14 @@ def update_owned_list():
         if app_id in owned_entries_dict.keys():
             print(f"{app_id} already in {owned_entries_dict[app_id]}")
         elif app_id in steam_game_dict.keys():
-            app_dict[app_id] = steam_game_dict[app_id].game_title
-            new_entry = ListEntry(
-                user_id=current_user_id,
-                steam_app_id=app_id,
-                list_id=list_owned.list_id,
+            new_entry = create_entry(
+                current_user,
+                steam_game_dict[app_id],
+                list_owned,
             )
-            new_entry.user = current_user
-            new_entry.app = steam_game_dict[app_id]
-            new_entry.list_relationship = list_owned
+
             db.session.add(new_entry)
-            print(f"Added {app_id}: {app_dict[app_id]} to\
-                 {list_owned} as {new_entry}")
+            print(f"Added {new_entry}")
         else:
             print(f"getting data for app id: {app_id}")
             app_data = get_app_name(str(app_id))
@@ -197,12 +221,22 @@ def update_owned_list():
                     steam_app_id=app_id,
                     game_title=app_name,
                 )
+                new_entry = create_entry(
+                    current_user,
+                    new_steam_app,
+                    list_owned
+                )
                 db.session.add(new_steam_app)
-                app_dict[app_id] = app_name
+                db.session.add(new_entry)
     # app_dict now has all of the apps owned by current_user.  Need to compare
     # to what we have stored in the db.
 
-        db.session.commit()
+    db.session.commit()
+    owned_entries_dict = get_list_entries(current_user, list_owned)
+    app_dict = {}
+    for entry in owned_entries_dict.values():
+        app_id = entry.steam_app_id
+        app_dict[app_id] = steam_game_dict[app_id].game_title
 
     return jsonify(app_dict)
 
