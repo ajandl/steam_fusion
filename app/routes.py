@@ -161,24 +161,24 @@ def set_steam():
     return jsonify(msg="Steam identity successfully updated"), 200
 
 
-@app.route("/update_owned_list", methods=["GET"])
-@jwt_required()
-def update_owned_list():
-    current_user_id = get_jwt_identity()
-    current_user = User.query.filter_by(user_id=current_user_id).first()
+def update_steam_lists(user: User, list_type):
+    if list_type == 'owned':
+        get_steam_list = get_owned
+    elif list_type == 'wishlist':
+        get_steam_list = get_wishlist
 
     user_role_owned = (
         ListRoles.query
         .join(ListsModel)
-        .filter(ListRoles.user_id == current_user_id)
-        .filter(ListsModel.list_name == 'owned')
+        .filter(ListRoles.user_id == user.user_id)
+        .filter(ListsModel.list_name == list_type)
         .first()
     )
 
     if user_role_owned is None:
-        new_list = ListsModel(list_name='owned')
+        new_list = ListsModel(list_name=list_type)
         new_role = ListRoles(
-            user_id=current_user_id,
+            user_id=user.user_id,
             permission_lvl='owner',
         )
         new_role.list_relationship = new_list
@@ -193,19 +193,26 @@ def update_owned_list():
             .first()
         )
 
-    steam_owned_list = get_owned(current_user.steamid)
+    steam_list = get_steam_list(user.steamid)
+    if list_type == 'wishlist':
+        app_id_list = []
+        for itm in steam_list:
+            app_id_list.append(itm)
+    elif list_type == 'owned':
+        app_id_list = []
+        for itm in steam_list:
+            app_id_list.append(str(itm['appid']))
 
     steam_game_dict = get_steam_games()
-    owned_entries_dict = get_list_entries(current_user, list_owned)
+    entries_dict = get_list_entries(user, list_owned)
 
-    for game in steam_owned_list:
-        app_id = str(game['appid'])
+    for app_id in app_id_list:
 
-        if app_id in owned_entries_dict.keys():
-            print(f"{app_id} already in {owned_entries_dict[app_id]}")
+        if app_id in entries_dict.keys():
+            print(f"{app_id} already in {entries_dict[app_id]}")
         elif app_id in steam_game_dict.keys():
             new_entry = create_entry(
-                current_user,
+                user,
                 steam_game_dict[app_id],
                 list_owned,
             )
@@ -222,7 +229,7 @@ def update_owned_list():
                     game_title=app_name,
                 )
                 new_entry = create_entry(
-                    current_user,
+                    user,
                     new_steam_app,
                     list_owned
                 )
@@ -232,13 +239,37 @@ def update_owned_list():
     # to what we have stored in the db.
 
     db.session.commit()
-    owned_entries_dict = get_list_entries(current_user, list_owned)
+    entries_dict = get_list_entries(user, list_owned)
     app_dict = {}
-    for entry in owned_entries_dict.values():
+    for entry in entries_dict.values():
         app_id = entry.steam_app_id
+        # There can be a KeyError on the next line if a game was added to the 
+        # db on L241. Error will not be present on 2nd execution.
         app_dict[app_id] = steam_game_dict[app_id].game_title
 
+    return app_dict
+
+
+@app.route("/update_owned_list", methods=["GET"])
+@jwt_required()
+def update_owned_list():
+    current_user_id = get_jwt_identity()
+    current_user = User.query.filter_by(user_id=current_user_id).first()
+
+    app_dict = update_steam_lists(current_user, 'owned')
+    
     return jsonify(app_dict)
+
+
+@app.route("/update_wl_list", methods=["GET"])
+@jwt_required()
+def update_wl_list():
+    current_user_id = get_jwt_identity()
+    current_user = User.query.filter_by(user_id=current_user_id).first()
+
+    app_dict = update_steam_lists(current_user, 'wishlist')
+    
+    return app_dict
 
 
 @app.after_request
