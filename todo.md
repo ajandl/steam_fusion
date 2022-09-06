@@ -1,11 +1,7 @@
-- [ ] Create models for:
-  - [ ] list_entries
-  - [ ] steam_games
-  - [ ] list_roles
-  - [ ] lists
-- [ ] Create import_steam endpoint:
-  - [ ] Get owned and wishlist
-  - [ ] Load into steam_games if not present
-  - [ ] If no lists exists, create it.
-    - [ ] Set role
-  - [ ] Add games to lists (under list_entries)
+- [x] Create separate file for each model
+- [ ] Make a class for handling the steam requests that also keeps the base URLs stored in strings for easy editing. Make it more DRY.
+- [ ] Don't use one letter variables
+- [ ] Consider moving the User methods to a separate class that takes a User as input.
+- [ ] Look up enums
+  - [ ] Use it to handle the OWNED and WISHLIST cases and their helper functions
+- [ ] 

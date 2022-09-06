@@ -1,12 +1,10 @@
 from app import app
 from flask import jsonify, request
-from app.models import (
-    User,
-    SteamGame,
-    ListEntry,
-    ListRoles,
-    ListsModel,
-)
+from app.list_entries_model import ListEntry
+from app.list_roles_model import ListRoles
+from app.lists_model import ListsModel
+from app.steam_games_model import SteamGame
+from app.users_model import User
 from flask_jwt_extended import (
     create_access_token,
     get_jwt_identity,
@@ -26,6 +24,19 @@ from app.steam_requests import (
 
 
 def get_list_entries(user: User, list_model: ListsModel) -> dict:
+    """Return the entries on a User's List
+
+    Positional arguments:
+    user: The user associated with the entries
+    list_model: The list associated with the entries
+
+    Returns:
+    dict: Keys - steam app ids; values - ListEntry
+    """
+    # This is currently using the user_id to filter, but the user_id in the 
+    # ListEntry table is supposed to be the user that added the game to the 
+    # list, not the user that the entry is associated with.  Need to do the 
+    # filtering in another way.
     owned_entries = (
         ListEntry.query
         .join(ListsModel)
@@ -34,8 +45,10 @@ def get_list_entries(user: User, list_model: ListsModel) -> dict:
         .all()
     )
     owned_entries_dict = {}
+    # Try using dictionary comprehension 
     for entry in owned_entries:
         owned_entries_dict[str(entry.steam_app_id)] = entry
+    entries_dict = {str(entry.steam_app_id): entry for entry in owned_entries} 
 
     return owned_entries_dict
 
@@ -43,6 +56,8 @@ def get_list_entries(user: User, list_model: ListsModel) -> dict:
 def get_steam_games() -> dict:
     steam_game_dict = {}
     steam_game_query = SteamGame.query.all()
+
+    # Use dictionary comprehension
     for steam_game in steam_game_query:
         steam_game_dict[str(steam_game.steam_app_id)] = steam_game
 
@@ -99,6 +114,8 @@ def register():
     new_username = request.json.get('username')
     new_user_password = request.json.get('password')
     new_user_email = request.json.get('email')
+    # if not all(username, password, email):
+    # ...
     if (
         new_username is None or
         new_user_password is None or
@@ -109,6 +126,7 @@ def register():
     # Does user already exist?
     current_user_list = User.query.filter_by(username=new_username).all()
     for u in current_user_list:
+        # I don't think I need to check the email if the user already exists
         if new_user_email == u.email:
             return jsonify(msg='Username and email already exist.'), 409
 
@@ -161,10 +179,14 @@ def set_steam():
     return jsonify(msg="Steam identity successfully updated"), 200
 
 
+# Could also move these into a special class.  Search enums on google.
+OWNED = 'owned'
+WISHLIST = 'wishlist'
 def update_steam_lists(user: User, list_type):
-    if list_type == 'owned':
+    # Should check dictionary for the functions instead of using if statements
+    if list_type == OWNED:
         get_steam_list = get_owned
-    elif list_type == 'wishlist':
+    elif list_type == WISHLIST:
         get_steam_list = get_wishlist
 
     user_role_owned = (
@@ -176,6 +198,7 @@ def update_steam_lists(user: User, list_type):
     )
 
     if user_role_owned is None:
+        # This part could be moved to it's own function for create_list
         new_list = ListsModel(list_name=list_type)
         new_role = ListRoles(
             user_id=user.user_id,
@@ -194,14 +217,19 @@ def update_steam_lists(user: User, list_type):
         )
 
     steam_list = get_steam_list(user.steamid)
-    if list_type == 'wishlist':
-        app_id_list = []
-        for itm in steam_list:
-            app_id_list.append(itm)
-    elif list_type == 'owned':
-        app_id_list = []
-        for itm in steam_list:
-            app_id_list.append(str(itm['appid']))
+    handlers = {
+        'wishlist': lambda sl: [item for item in sl],
+        'owned': lambda sl: [str(item['appid']) for item in sl]
+    }
+    app_id_list = handlers[list_type](steam_list)
+    # if list_type == 'wishlist':
+    #     app_id_list = []
+    #     for itm in steam_list:
+    #         app_id_list.append(itm)
+    # elif list_type == 'owned':
+    #     app_id_list = []
+    #     for itm in steam_list:
+    #         app_id_list.append(str(itm['appid']))
 
     steam_game_dict = get_steam_games()
     entries_dict = get_list_entries(user, list_owned)
@@ -220,6 +248,7 @@ def update_steam_lists(user: User, list_type):
             db.session.add(new_entry)
             print(f"Added {new_entry}")
         else:
+            # Can this be simplified with helper functions?
             print(f"getting data for app id: {app_id}")
             app_data = get_app_name(str(app_id))
             if app_data is not None:
@@ -243,9 +272,10 @@ def update_steam_lists(user: User, list_type):
     app_dict = {}
     for entry in entries_dict.values():
         app_id = entry.steam_app_id
-        # There can be a KeyError on the next line if a game was added to the 
+        # There can be a KeyError on the next line if a game was added to the
         # db on L241. Error will not be present on 2nd execution.
-        app_dict[app_id] = steam_game_dict[app_id].game_title
+        # I think this will work now.
+        app_dict[app_id] = entries_dict[app_id].game_title
 
     return app_dict
 
@@ -257,7 +287,7 @@ def update_owned_list():
     current_user = User.query.filter_by(user_id=current_user_id).first()
 
     app_dict = update_steam_lists(current_user, 'owned')
-    
+
     return jsonify(app_dict)
 
 
@@ -268,7 +298,7 @@ def update_wl_list():
     current_user = User.query.filter_by(user_id=current_user_id).first()
 
     app_dict = update_steam_lists(current_user, 'wishlist')
-    
+
     return app_dict
 
 
@@ -277,6 +307,7 @@ def refresh_token(response):
     try:
         exp_timestamp = get_jwt()['exp']
         now = datetime.now(timezone.utc)
+        # TODO Move expiration time to config.py
         target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
 
         if target_timestamp > exp_timestamp:
