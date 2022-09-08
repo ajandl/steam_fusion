@@ -1,6 +1,6 @@
+from time import sleep
 import requests
 from app import app
-from time import sleep
 
 
 def rate_limit(func):
@@ -10,48 +10,64 @@ def rate_limit(func):
     return wrapper
 
 
-@rate_limit
-def get_player_summary(steamid: str) -> dict:
+class SteamRequests():
+    API_URL = 'http://api.steampowered.com'
+    STORE_URL = 'http://store.steampowered.com'
+    steam_api_key = app.config['STEAM_API']
+    PLAYER_SUMMARY = '/ISteamUser/GetPlayerSummaries/v0002/'
+    OWNED_GAMES = '/IPlayerService/GetOwnedGames/v0001/'
 
-    r = requests.get(
-        r'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/',
-        params={'key': app.config['STEAM_API'], 'steamids': steamid}
-    ).json()
+    @rate_limit
+    @classmethod
+    def steam_store_helper(cls, endpoint_url, params=None):
 
-    return r['response']['players'][0]
+        url = cls.STORE_URL + endpoint_url
+        response = requests.get(url, params)
 
+        return response.json()
 
-@rate_limit
-def get_wishlist(steamid: str) -> dict:
+    @rate_limit
+    @classmethod
+    def steam_api_helper(cls, endpoint_url, params):
 
-    r = requests.get(
-        (r'http://store.steampowered.com/'
-         fr'wishlist/profiles/{steamid}/wishlistdata')
-    ).json()
+        url = cls.API_URL + endpoint_url
+        default_params = {'key': cls.steam_api_key, **params}
+        response = requests.get(url, default_params).json()
 
-    return r
+        return response
 
+    @classmethod
+    def player(cls, steamid: str) -> dict:
 
-@rate_limit
-def get_owned(steamid: str) -> list:
+        params = {'steamids': steamid}
+        response = cls.steam_api_helper(cls.PLAYER_SUMMARY, params)
 
-    r = requests.get(
-        r'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/',
-        params={'key': app.config['STEAM_API'], 'steamid': steamid}
-    ).json()
+        return response['response']['players'][0]
 
-    return r['response']['games']
+    @classmethod
+    def owned(cls, steamid: str) -> list:
 
+        params = {'steamid': steamid}
+        response = cls.steam_api_helper(cls.OWNED_GAMES, params)
 
-@rate_limit
-def get_app_name(app_id: str) -> str:
+        return response['response']['games']
 
-    r = requests.get(
-        r'http://store.steampowered.com/api/appdetails',
-        params={'appids': app_id}
-    ).json()
+    @classmethod
+    def wishlist(cls, steamid: str) -> dict:
 
-    if not r[app_id]['success']:
-        return None
+        response = cls.steam_store_helper(
+            f'/wishlist/profiles/{steamid}/wishlistdata'
+        )
 
-    return r[app_id]['data']
+        return response
+
+    @classmethod
+    def app_data(cls, app_id: str) -> str:
+
+        params = {'appids': app_id}
+        response = cls.steam_store_helper('/api/appdetails', params)
+
+        if not response[app_id]['success']:
+            return None
+
+        return response[app_id]['data']

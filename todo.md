@@ -1,5 +1,6 @@
 - [x] Create separate file for each model
-- [ ] Make a class for handling the steam requests that also keeps the base URLs stored in strings for easy editing. Make it more DRY.
+- [x] Make a class for handling the steam requests that also keeps the base URLs stored in strings for easy editing. Make it more DRY.
+  - [ ] SteamRequests class requires integration and testing
 - [ ] Don't use one letter variables
 - [ ] Consider moving the User methods to a separate class that takes a User as input.
 - [ ] Look up enums
