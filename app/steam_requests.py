@@ -17,8 +17,8 @@ class SteamRequests():
     PLAYER_SUMMARY = '/ISteamUser/GetPlayerSummaries/v0002/'
     OWNED_GAMES = '/IPlayerService/GetOwnedGames/v0001/'
 
-    @rate_limit
     @classmethod
+    @rate_limit
     def steam_store_helper(cls, endpoint_url, params=None):
 
         url = cls.STORE_URL + endpoint_url
@@ -26,8 +26,8 @@ class SteamRequests():
 
         return response.json()
 
-    @rate_limit
     @classmethod
+    @rate_limit
     def steam_api_helper(cls, endpoint_url, params):
 
         url = cls.API_URL + endpoint_url

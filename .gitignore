@@ -1,6 +1,7 @@
 environ_vars.py
 venv/
 .vscode/
+.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

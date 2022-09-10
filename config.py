@@ -15,3 +15,4 @@ class Config():
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'change_this_key'
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
     STEAM_API = os.environ.get('STEAM_API')
+    STEAMID = os.environ.get('STEAMID')
