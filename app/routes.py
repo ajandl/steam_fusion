@@ -15,12 +15,7 @@ from flask_jwt_extended import (
 from datetime import datetime, timedelta, timezone
 from app import db
 import json
-from app.steam_requests import (
-    get_player_summary,
-    get_owned,
-    get_app_name,
-    get_wishlist,
-)
+from app.steam_requests import SteamRequests
 
 
 def get_list_entries(user: User, list_model: ListsModel) -> dict:
@@ -33,9 +28,9 @@ def get_list_entries(user: User, list_model: ListsModel) -> dict:
     Returns:
     dict: Keys - steam app ids; values - ListEntry
     """
-    # This is currently using the user_id to filter, but the user_id in the 
-    # ListEntry table is supposed to be the user that added the game to the 
-    # list, not the user that the entry is associated with.  Need to do the 
+    # This is currently using the user_id to filter, but the user_id in the
+    # ListEntry table is supposed to be the user that added the game to the
+    # list, not the user that the entry is associated with.  Need to do the
     # filtering in another way.
     owned_entries = (
         ListEntry.query
@@ -45,10 +40,12 @@ def get_list_entries(user: User, list_model: ListsModel) -> dict:
         .all()
     )
     owned_entries_dict = {}
-    # Try using dictionary comprehension 
+    # Try using dictionary comprehension
     for entry in owned_entries:
         owned_entries_dict[str(entry.steam_app_id)] = entry
-    entries_dict = {str(entry.steam_app_id): entry for entry in owned_entries} 
+    owned_entries_dict = {
+        str(entry.steam_app_id): entry for entry in owned_entries
+    }
 
     return owned_entries_dict
 
@@ -168,7 +165,7 @@ def set_steam():
 
     # Use /GetPlayerSummaries/ to check steamid and get steam persona
     try:
-        steam_name = get_player_summary(steamid)['personaname']
+        steam_name = SteamRequests.player(steamid)['personaname']
     except IndexError:
         return jsonify(msg="IndexError: Steam ID invalid"), 403
     except KeyError:
@@ -182,12 +179,14 @@ def set_steam():
 # Could also move these into a special class.  Search enums on google.
 OWNED = 'owned'
 WISHLIST = 'wishlist'
+
+
 def update_steam_lists(user: User, list_type):
     # Should check dictionary for the functions instead of using if statements
     if list_type == OWNED:
-        get_steam_list = get_owned
+        get_steam_list = SteamRequests.owned
     elif list_type == WISHLIST:
-        get_steam_list = get_wishlist
+        get_steam_list = SteamRequests.wishlist
 
     user_role_owned = (
         ListRoles.query
@@ -250,7 +249,7 @@ def update_steam_lists(user: User, list_type):
         else:
             # Can this be simplified with helper functions?
             print(f"getting data for app id: {app_id}")
-            app_data = get_app_name(str(app_id))
+            app_data = SteamRequests.app_data(str(app_id))
             if app_data is not None:
                 app_name = app_data['name']
                 new_steam_app = SteamGame(
@@ -273,9 +272,9 @@ def update_steam_lists(user: User, list_type):
     for entry in entries_dict.values():
         app_id = entry.steam_app_id
         # There can be a KeyError on the next line if a game was added to the
-        # db on L241. Error will not be present on 2nd execution.
+        # db 241. Error will not be present on 2nd execution.
         # I think this will work now.
-        app_dict[app_id] = entries_dict[app_id].game_title
+        app_dict[app_id] = steam_game_dict[app_id].game_title
 
     return app_dict
 
