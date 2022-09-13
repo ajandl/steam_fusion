@@ -1,82 +1,16 @@
 from app import app
 from flask import jsonify, request
-from app.list_entries_model import ListEntry
-from app.list_roles_model import ListRoles
-from app.lists_model import ListsModel
-from app.steam_games_model import SteamGame
 from app.users_model import User
-from flask_jwt_extended import (
-    create_access_token,
-    get_jwt_identity,
-    jwt_required,
-    unset_jwt_cookies,
-    get_jwt,
-)
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import unset_jwt_cookies
+from flask_jwt_extended import get_jwt
 from datetime import datetime, timedelta, timezone
 from app import db
 import json
 from app.steam_requests import SteamRequests
-
-
-def get_list_entries(user: User, list_model: ListsModel) -> dict:
-    """Return the entries on a User's List
-
-    Positional arguments:
-    user: The user associated with the entries
-    list_model: The list associated with the entries
-
-    Returns:
-    dict: Keys - steam app ids; values - ListEntry
-    """
-    # This is currently using the user_id to filter, but the user_id in the
-    # ListEntry table is supposed to be the user that added the game to the
-    # list, not the user that the entry is associated with.  Need to do the
-    # filtering in another way.
-    owned_entries = (
-        ListEntry.query
-        .join(ListsModel)
-        .filter(ListEntry.list_id == list_model.list_id)
-        .filter(ListEntry.user_id == user.user_id)
-        .all()
-    )
-    owned_entries_dict = {}
-    # Try using dictionary comprehension
-    for entry in owned_entries:
-        owned_entries_dict[str(entry.steam_app_id)] = entry
-    owned_entries_dict = {
-        str(entry.steam_app_id): entry for entry in owned_entries
-    }
-
-    return owned_entries_dict
-
-
-def get_steam_games() -> dict:
-    steam_game_dict = {}
-    steam_game_query = SteamGame.query.all()
-
-    # Use dictionary comprehension
-    for steam_game in steam_game_query:
-        steam_game_dict[str(steam_game.steam_app_id)] = steam_game
-
-    return steam_game_dict
-
-
-def create_entry(
-    user: User,
-    app: SteamGame,
-    list_model: ListsModel
-) -> ListEntry:
-
-    new_entry = ListEntry(
-        user_id=user.user_id,
-        steam_app_id=app.steam_app_id,
-        list_id=list_model.list_id,
-    )
-    new_entry.user = user
-    new_entry.app = app
-    new_entry.list_relationship = list_model
-
-    return new_entry
+from app.route_helpers import update_steam_lists
 
 
 @app.route('/')
@@ -174,109 +108,6 @@ def set_steam():
     current_user.set_steam(steamid=steamid, steam_name=steam_name)
     db.session.commit()
     return jsonify(msg="Steam identity successfully updated"), 200
-
-
-# Could also move these into a special class.  Search enums on google.
-OWNED = 'owned'
-WISHLIST = 'wishlist'
-
-
-def update_steam_lists(user: User, list_type):
-    # Should check dictionary for the functions instead of using if statements
-    if list_type == OWNED:
-        get_steam_list = SteamRequests.owned
-    elif list_type == WISHLIST:
-        get_steam_list = SteamRequests.wishlist
-
-    user_role_owned = (
-        ListRoles.query
-        .join(ListsModel)
-        .filter(ListRoles.user_id == user.user_id)
-        .filter(ListsModel.list_name == list_type)
-        .first()
-    )
-
-    if user_role_owned is None:
-        # This part could be moved to it's own function for create_list
-        new_list = ListsModel(list_name=list_type)
-        new_role = ListRoles(
-            user_id=user.user_id,
-            permission_lvl='owner',
-        )
-        new_role.list_relationship = new_list
-        db.session.add(new_list)
-        db.session.add(new_role)
-        user_role_owned = new_role
-        list_owned = new_list
-    else:
-        list_owned = (
-            ListsModel.query
-            .filter_by(list_id=user_role_owned.list_id)
-            .first()
-        )
-
-    steam_list = get_steam_list(user.steamid)
-    handlers = {
-        'wishlist': lambda sl: [item for item in sl],
-        'owned': lambda sl: [str(item['appid']) for item in sl]
-    }
-    app_id_list = handlers[list_type](steam_list)
-    # if list_type == 'wishlist':
-    #     app_id_list = []
-    #     for itm in steam_list:
-    #         app_id_list.append(itm)
-    # elif list_type == 'owned':
-    #     app_id_list = []
-    #     for itm in steam_list:
-    #         app_id_list.append(str(itm['appid']))
-
-    steam_game_dict = get_steam_games()
-    entries_dict = get_list_entries(user, list_owned)
-
-    for app_id in app_id_list:
-
-        if app_id in entries_dict.keys():
-            print(f"{app_id} already in {entries_dict[app_id]}")
-        elif app_id in steam_game_dict.keys():
-            new_entry = create_entry(
-                user,
-                steam_game_dict[app_id],
-                list_owned,
-            )
-
-            db.session.add(new_entry)
-            print(f"Added {new_entry}")
-        else:
-            # Can this be simplified with helper functions?
-            print(f"getting data for app id: {app_id}")
-            app_data = SteamRequests.app_data(str(app_id))
-            if app_data is not None:
-                app_name = app_data['name']
-                new_steam_app = SteamGame(
-                    steam_app_id=app_id,
-                    game_title=app_name,
-                )
-                new_entry = create_entry(
-                    user,
-                    new_steam_app,
-                    list_owned
-                )
-                db.session.add(new_steam_app)
-                db.session.add(new_entry)
-    # app_dict now has all of the apps owned by current_user.  Need to compare
-    # to what we have stored in the db.
-
-    db.session.commit()
-    entries_dict = get_list_entries(user, list_owned)
-    app_dict = {}
-    for entry in entries_dict.values():
-        app_id = entry.steam_app_id
-        # There can be a KeyError on the next line if a game was added to the
-        # db 241. Error will not be present on 2nd execution.
-        # I think this will work now.
-        app_dict[app_id] = steam_game_dict[app_id].game_title
-
-    return app_dict
 
 
 @app.route("/update_owned_list", methods=["GET"])
