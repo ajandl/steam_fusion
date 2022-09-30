@@ -17,44 +17,35 @@ def get_list_entries(user: User, list_model: ListsModel) -> dict:
     Returns:
     dict: Keys - steam app ids; values - ListEntry
     """
-    # This is currently using the user_id to filter, but the user_id in the
-    # ListEntry table is supposed to be the user that added the game to the
-    # list, not the user that the entry is associated with.  Need to do the
-    # filtering in another way.
-
-    # What I really want here are 2 actions:
-    # 1. Check that a user has permission to view a list.
-    # 2. If user has view permission, then get the entries of the list.
 
     # The following query should return 1 role, NoResultFound error, or
     # MultipleResultsFound Error. The route is expected to handle these errors
     # by returning appropriate HTTP error codes. Assuming that a user is only
     # ever granted a single permission level on a list (something we can
-    # enforce), then no further checks are required here to determine if the 
+    # enforce), then no further checks are required here to determine if the
     # user has the appropriate permission level.
-    user_role = ListRoles.query.filter_by(
+    ListRoles.query.filter_by(
         list_id=list_model.list_id,
         user_id=user.user_id,
     ).one()
 
     # If no errors were raised, then the user must have permission to view the
     # list.
-    # TODO Start here and rename variables below.
-    owned_entries = (
+    list_entries = (
         ListEntry.query
         .join(ListsModel)
         .filter(ListEntry.list_id == list_model.list_id)
         .all()
     )
-    owned_entries_dict = {}
+    entries_dict = {}
     # Try using dictionary comprehension
-    for entry in owned_entries:
-        owned_entries_dict[str(entry.steam_app_id)] = entry
-    owned_entries_dict = {
-        str(entry.steam_app_id): entry for entry in owned_entries
+    for entry in list_entries:
+        entries_dict[str(entry.steam_app_id)] = entry
+    entries_dict = {
+        str(entry.steam_app_id): entry for entry in list_entries
     }
 
-    return owned_entries_dict
+    return entries_dict
 
 
 def get_steam_games() -> dict:
@@ -86,19 +77,12 @@ def create_entry(
     return new_entry
 
 
-# Could also move these into a special class.  Search enums on google.
-OWNED = 'owned'
-WISHLIST = 'wishlist'
+def update_steam_lists(user: User, list_type: str) -> dict:
 
+    get_steam_list = SteamRequests.list_methods.get(list_type)
+    # should raise an error if get_steam_list is none.
 
-def update_steam_lists(user: User, list_type):
-    # Should check dictionary for the functions instead of using if statements
-    if list_type == OWNED:
-        get_steam_list = SteamRequests.owned
-    elif list_type == WISHLIST:
-        get_steam_list = SteamRequests.wishlist
-
-    user_role_owned = (
+    user_role = (
         ListRoles.query
         .join(ListsModel)
         .filter(ListRoles.user_id == user.user_id)
@@ -106,7 +90,7 @@ def update_steam_lists(user: User, list_type):
         .first()
     )
 
-    if user_role_owned is None:
+    if user_role is None:
         # This part could be moved to it's own function for create_list
         new_list = ListsModel(list_name=list_type)
         new_role = ListRoles(
@@ -116,12 +100,12 @@ def update_steam_lists(user: User, list_type):
         new_role.list_relationship = new_list
         db.session.add(new_list)
         db.session.add(new_role)
-        user_role_owned = new_role
+        user_role = new_role
         list_owned = new_list
     else:
         list_owned = (
             ListsModel.query
-            .filter_by(list_id=user_role_owned.list_id)
+            .filter_by(list_id=user_role.list_id)
             .first()
         )
 

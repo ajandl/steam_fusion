@@ -16,3 +16,4 @@ class Config():
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
     STEAM_API = os.environ.get('STEAM_API')
     STEAMID = os.environ.get('STEAMID')
+    TOKEN_TIMEOUT = 30

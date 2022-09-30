@@ -1,6 +1,7 @@
 from time import sleep
 import requests
 from app import app
+from app.steam_list_types import ListTypes
 
 
 def rate_limit(func):
@@ -71,3 +72,8 @@ class SteamRequests():
             return None
 
         return response[app_id]['data']
+
+    list_methods = {
+        ListTypes.OWNED.value: owned,
+        ListTypes.WISHLIST.value: wishlist
+    }

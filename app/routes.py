@@ -45,21 +45,13 @@ def register():
     new_username = request.json.get('username')
     new_user_password = request.json.get('password')
     new_user_email = request.json.get('email')
-    # if not all(username, password, email):
-    # ...
-    if (
-        new_username is None or
-        new_user_password is None or
-        new_user_email is None
-    ):
+    if not all(new_username, new_user_password, new_user_email):
         return jsonify(msg='Missing required information'), 403
 
     # Does user already exist?
-    current_user_list = User.query.filter_by(username=new_username).all()
-    for u in current_user_list:
-        # I don't think I need to check the email if the user already exists
-        if new_user_email == u.email:
-            return jsonify(msg='Username and email already exist.'), 409
+    current_user_list = User.query.filter_by(username=new_username).first()
+    if current_user_list:
+        return jsonify(msg='Username and email already exist.'), 409
 
     new_user = User(username=new_username, email=new_user_email)
     new_user.set_password(new_user_password)
@@ -137,8 +129,8 @@ def refresh_token(response):
     try:
         exp_timestamp = get_jwt()['exp']
         now = datetime.now(timezone.utc)
-        # TODO Move expiration time to config.py
-        target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+        timeout = app.config['TOKEN_TIMEOUT']
+        target_timestamp = datetime.timestamp(now + timedelta(minutes=timeout))
 
         if target_timestamp > exp_timestamp:
             access_token = create_access_token(identity=get_jwt_identity())

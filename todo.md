@@ -3,6 +3,10 @@
   - [x] SteamRequests class requires integration and testing
 - [x] Don't use one letter variables
 - [ ] Consider moving the User methods to a separate class that takes a User as input.
-- [ ] Look up enums
-  - [ ] Use it to handle the OWNED and WISHLIST cases and their helper functions
-- [ ] 
+  - Created users_methods, now I need to import this along with users_model and change all method calls.
+  - OR import all users_methods as the same name as the methods I'm already using.
+- [x] Look up enums
+  - [x] Use it to handle the OWNED and WISHLIST cases and their helper functions
+- [ ] Implement testing
+  - Start with routes, then work on the untested parts of the models.  Finish with testing of the helper functions and methods
+  - Use test driven development to: Get a user's owned or WL lists as another user
