@@ -7,6 +7,13 @@ from flask_jwt_extended import JWTManager
 
 # environ_setup()  # This shouldn't be needed now that .env is implemented.
 app = Flask(__name__)
-app.config.from_object(Config)
-db = SQLAlchemy(app)
-jwt = JWTManager(app)
+db = SQLAlchemy()
+jwt = JWTManager()
+
+
+def setup_app(app):
+    app.config.from_object(Config)
+    db.init_app(app)
+    jwt.init_app(app)
+
+    return app

@@ -1,7 +1,7 @@
 from time import sleep
 import requests
-from app import app
 from app.steam_list_types import ListTypes
+from config import STEAM_API
 
 
 def rate_limit(func):
@@ -14,7 +14,7 @@ def rate_limit(func):
 class SteamRequests():
     API_URL = 'http://api.steampowered.com'
     STORE_URL = 'http://store.steampowered.com'
-    steam_api_key = app.config['STEAM_API']
+    steam_api_key = STEAM_API
     PLAYER_SUMMARY = '/ISteamUser/GetPlayerSummaries/v0002/'
     OWNED_GAMES = '/IPlayerService/GetOwnedGames/v0001/'
 
